@@ -1,11 +1,7 @@
 import { toast } from "sonner";
 import { UserState, WalletState } from "./types";
-import storage from "./storage";
+import { storage } from "./storage";
 import { encryption } from "./encryption";
-
-// Admin credentials
-const ADMIN_EMAIL = "moonman@moonshot.com";
-const ADMIN_PASSWORD = "password12";
 
 // Mock authentication service with persistent storage
 export const login = async (email: string, password: string): Promise<UserState> => {
@@ -14,15 +10,15 @@ export const login = async (email: string, password: string): Promise<UserState>
     setTimeout(() => {
       try {
         // Check for admin account
-        if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+        if (email === "admin@moonshot.com" && password === "admin123") {
           // Get existing users
           const users = storage.getUsers();
           
           // Create or update admin data
           const adminData: UserState = {
             id: `admin_${Date.now()}`,
-            email: ADMIN_EMAIL,
-            username: "Moonman Admin",
+            email: "admin@moonshot.com",
+            username: "Administrator",
             isLoggedIn: true,
             isNewUser: false,
             hasDeposited: true,
@@ -40,7 +36,7 @@ export const login = async (email: string, password: string): Promise<UserState>
           };
           
           // Store admin in users registry with encrypted password
-          users[ADMIN_EMAIL] = {
+          users["admin@moonshot.com"] = {
             password: encryption.encrypt(password),
             userData: adminData
           };
@@ -54,7 +50,7 @@ export const login = async (email: string, password: string): Promise<UserState>
           storage.setUser(adminData);
           
           resolve(adminData);
-          toast.success("Welcome, Moonman Admin!");
+          toast.success("Welcome, Administrator!");
           return;
         }
         
@@ -180,7 +176,7 @@ export const getCurrentUser = (): UserState | null => {
   try {
     const user = storage.getUser();
     // If it's an admin user, ensure admin flag is set
-    if (user?.email === ADMIN_EMAIL) {
+    if (user?.email === 'admin@moonshot.com') {
       user.isAdmin = true;
       storage.setUser(user);
     }

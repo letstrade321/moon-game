@@ -48,7 +48,7 @@ export const getPendingTransactions = (): Transaction[] => {
     if (walletData) {
       const wallet = JSON.parse(walletData);
       const userPendingTransactions = wallet.transactions.filter(
-        (tx: Transaction) => tx.status === 'pending' && tx.type === 'deposit'
+        (tx: Transaction) => tx.status === 'pending'
       );
       
       // Add user information to each transaction

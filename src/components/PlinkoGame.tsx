@@ -10,7 +10,6 @@ import { GameState, WalletState, RiskLevel, RiskMultipliers, RiskColors, RiskLab
 import { toast } from "sonner";
 import { registerGameResult, saveWalletState } from "@/lib/wallet";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 interface PlinkoGameProps {
   walletState: WalletState;
@@ -150,16 +149,6 @@ const PlinkoGame: React.FC<PlinkoGameProps> = ({ walletState, setWalletState }) 
     0: "Low Risk",
     1: "Medium Risk",
     2: "High Risk"
-  };
-  
-  // Add getMultiplierRarity function
-  const getMultiplierRarity = (multiplier: number): string => {
-    if (multiplier >= 1000) return "Ultra Rare";
-    if (multiplier >= 100) return "Very Rare";
-    if (multiplier >= 50) return "Rare";
-    if (multiplier >= 10) return "Uncommon";
-    if (multiplier >= 1) return "Common";
-    return "Loss";
   };
   
   // Remove sparkles and bounce effects after some time
@@ -600,24 +589,47 @@ const PlinkoGame: React.FC<PlinkoGameProps> = ({ walletState, setWalletState }) 
   
   // Render multiplier buckets
   const renderBuckets = () => {
-    return (
-      <div className="flex justify-between items-end h-16 mt-4">
-        {currentMultipliers.map((multiplier, index) => (
-          <div 
-            key={index}
-            className={`flex flex-col items-center ${RISK_COLORS[riskLevel[0] as RiskLevel]}`}
-            style={{ margin: '0 4px' }} // Add 2 spaces between each multiplier
-          >
-            <div className="text-sm font-bold">
-              {multiplier}x
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {getMultiplierRarity(multiplier)}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
+    const buckets = [];
+    const multipliers = currentMultipliers;
+    const bucketWidth = 25; // Smaller buckets for more pins
+    const totalWidth = multipliers.length * bucketWidth;
+    
+    for (let i = 0; i < multipliers.length; i++) {
+      const x = i * bucketWidth - totalWidth / 2 + bucketWidth / 2;
+      const isMiddle = i === Math.floor(multipliers.length / 2);
+      const isHighValue = multipliers[i] >= 10;
+      const isVeryHighValue = multipliers[i] >= 100;
+      const isUltraHighValue = multipliers[i] >= 1000;
+      
+      let bucketColor = "";
+      if (multipliers[i] <= 0.5) bucketColor = "bg-red-500/30";
+      else if (multipliers[i] < 1.5) bucketColor = "bg-yellow-500/30";
+      else if (multipliers[i] < 10) bucketColor = "bg-green-500/30";
+      else if (multipliers[i] < 100) bucketColor = "bg-blue-500/30";
+      else if (multipliers[i] < 1000) bucketColor = "bg-purple-500/30";
+      else bucketColor = "bg-pink-500/30";
+      
+      buckets.push(
+        <div 
+          key={i}
+          className={`absolute bottom-0 h-14 flex items-center justify-center text-xs font-bold 
+                    border border-primary/50 rounded-md mx-0.5
+                    ${bucketColor} 
+                    ${isMiddle ? 'border-purple-500' : ''} 
+                    ${isHighValue ? 'animate-pulse' : ''}
+                    ${isVeryHighValue ? 'animate-bounce' : ''}
+                    ${isUltraHighValue ? 'bg-gradient-to-t from-pink-500/50 to-yellow-500/50' : ''}`}
+          style={{
+            width: bucketWidth - 1, // slightly smaller to create space between buckets
+            left: `calc(50% + ${x}px)`,
+            transform: 'translateX(-50%)',
+          }}
+        >
+          {multipliers[i]}x
+        </div>
+      );
+    }
+    return buckets;
   };
   
   // Render visual bouncing effect
@@ -787,139 +799,177 @@ const PlinkoGame: React.FC<PlinkoGameProps> = ({ walletState, setWalletState }) 
   };
   
   return (
-    <div className="flex flex-col items-center space-y-8">
-      {/* Game Controls */}
-      <div className="w-full max-w-md flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <Label htmlFor="bet-amount">Bet Amount:</Label>
-            <Input
-              id="bet-amount"
-              type="number"
-              value={betAmount}
-              onChange={(e) => setBetAmount(Number(e.target.value))}
-              min={1}
-              max={walletState.balance}
-              className="w-24"
-            />
-          </div>
-          <div className="flex items-center space-x-2">
-            <Label htmlFor="risk-level">Risk Level:</Label>
-            <Select value={riskLevel.toString()} onValueChange={(value) => setRiskLevel(Number(value))}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="0">Low Risk</SelectItem>
-                <SelectItem value="1">Medium Risk</SelectItem>
-                <SelectItem value="2">High Risk</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <Button 
-          onClick={handleStartGame} 
-          disabled={
-            !betAmount || 
-            parseFloat(betAmount) <= 0 || 
-            !walletState.balance || 
-            walletState.balance <= 0 ||
-            (parseFloat(betAmount) * ballCount[0]) > walletState.balance
-          }
-          className="bg-primary hover:bg-primary/90"
-        >
-          {gameState.isPlaying ? "Playing..." : "Play"}
-        </Button>
-      </div>
-
-      {/* Game Board */}
-      <div className="relative w-full max-w-2xl aspect-[2/1] bg-background rounded-lg border shadow-lg overflow-hidden">
-        {/* Game Board Background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background to-muted/30" />
-        
-        {/* Game Board Grid */}
-        <div className="absolute inset-0 grid grid-cols-9 gap-1 p-1">
-          {Array.from({ length: 9 }).map((_, rowIndex) => (
-            <div key={rowIndex} className="grid grid-cols-9 gap-1">
-              {Array.from({ length: 9 }).map((_, colIndex) => (
-                <div 
-                  key={`${rowIndex}-${colIndex}`}
-                  className={`aspect-square rounded-full ${
-                    gameState.isPlaying && 
-                    ballPosition.row === rowIndex && 
-                    ballPosition.col === colIndex
-                      ? 'bg-primary animate-pulse'
-                      : 'bg-muted/30'
-                  }`}
-                />
-              ))}
+    <Card className="w-full max-w-2xl glass mx-auto overflow-hidden">
+      <CardHeader>
+        <CardTitle className="flex items-center justify-center">
+          <GamepadIcon className="mr-2 h-6 w-6" />
+          Moonballs
+        </CardTitle>
+        <CardDescription className="text-center">
+          Drop the ball and watch it bounce for big wins!
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Left side - Game board */}
+          <div className="md:w-2/3 space-y-6">
+            {/* Balance Display */}
+            <div className="bg-muted/50 p-4 rounded-lg text-center">
+              <div className="text-sm font-medium mb-1">Your Balance</div>
+              <div className="text-2xl font-bold">
+                ${walletState.balance ? walletState.balance.toFixed(2) : "0.00"}
+              </div>
             </div>
-          ))}
-        </div>
-
-        {/* Ball */}
-        <div 
-          className={`absolute w-4 h-4 bg-primary rounded-full shadow-lg transition-all duration-200 ease-in-out ${
-            gameState.isPlaying ? 'animate-bounce' : ''
-          }`}
-          style={{
-            left: `${(ballPosition.col / 8) * 100}%`,
-            top: `${(ballPosition.row / 8) * 100}%`,
-            transform: 'translate(-50%, -50%)'
-          }}
-        />
-
-        {/* Pins */}
-        {renderPins()}
-
-        {/* Multipliers */}
-        <div className="absolute bottom-0 left-0 right-0 flex justify-between px-4 pb-2">
-          {currentMultipliers.map((multiplier, index) => (
+            
+            {/* Plinko Board */}
             <div 
-              key={index}
-              className={`text-center transition-all duration-300 ${
-                gameState.isPlaying && ballPosition.row === 8 && ballPosition.col === index
-                  ? 'scale-110 font-bold text-primary'
-                  : 'text-muted-foreground'
-              }`}
+              ref={plinkoRef}
+              className="relative w-full h-[450px] bg-muted/30 rounded-lg overflow-hidden border border-muted"
             >
-              <div className="text-sm font-medium">{multiplier}x</div>
-              <div className="text-xs opacity-75">{getMultiplierRarity(multiplier)}</div>
+              {renderPins()}
+              {renderBuckets()}
+              {renderBounceEffects()}
+              {renderSparkleEffects()}
+              {renderActiveBalls()}
+              
+              {gameState.lastResult && !gameState.isPlaying && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className={`text-3xl font-bold ${
+                    gameState.lastResult === 'win' ? 'text-success animate-bounce' : 'text-destructive'
+                  } bg-black/50 px-6 py-3 rounded-lg`}>
+                    {gameState.lastResult === 'win' ? (
+                      <>
+                        <Trophy className="inline-block h-6 w-6 mr-2" />
+                        ${(gameState.winAmount || 0).toFixed(2)}
+                      </>
+                    ) : (
+                      <>
+                        <AlertCircle className="inline-block h-6 w-6 mr-2" />
+                        Loss
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
-          ))}
+          </div>
+          
+          {/* Right side - Game Controls */}
+          <div className="md:w-1/3 space-y-4">
+            {!gameState.isPlaying ? (
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <Label htmlFor="riskLevel">Risk Level</Label>
+                    {renderRiskIndicator()}
+                  </div>
+                  
+                  <div className="relative pt-1">
+                    <Slider
+                      id="riskLevel"
+                      min={0}
+                      max={2}
+                      step={1}
+                      value={riskLevel}
+                      onValueChange={setRiskLevel}
+                      className="py-2"
+                    />
+                    
+                    <div className="flex justify-between mt-2 text-xs">
+                      <span className="text-blue-500 font-medium">Low Risk</span>
+                      <span className="text-yellow-500 font-medium">Medium Risk</span>
+                      <span className="text-red-500 font-medium">High Risk</span>
+                    </div>
+                    
+                    <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+                      <span>More wins</span>
+                      <span>Balanced</span>
+                      <span>High payouts</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Ball count slider */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <Label htmlFor="ballCount">Ball Count</Label>
+                    <div className="text-xs font-medium px-2 py-1 rounded bg-muted">
+                      {ballCount[0]} ball{ballCount[0] !== 1 ? 's' : ''}
+                    </div>
+                  </div>
+                  
+                  <div className="relative pt-1">
+                    <Slider
+                      id="ballCount"
+                      min={1}
+                      max={50}
+                      step={1}
+                      value={ballCount}
+                      onValueChange={setBallCount}
+                      className="py-2"
+                    />
+                    
+                    <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+                      <span>Single</span>
+                      <span>Multiple</span>
+                      <span>Mass Drop</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="betAmount">Bet Amount Per Ball ($)</Label>
+                  <Input
+                    id="betAmount"
+                    type="number"
+                    placeholder="0.00"
+                    value={betAmount}
+                    onChange={(e) => setBetAmount(e.target.value)}
+                    step="1"
+                    min="1"
+                    max={walletState.balance ? Math.floor(walletState.balance / ballCount[0]).toString() : "0"}
+                  />
+                  <div className="text-xs text-muted-foreground">
+                    Total bet: ${(parseFloat(betAmount) || 0) * ballCount[0]}
+                  </div>
+                </div>
+                
+                <Button 
+                  onClick={handleStartGame} 
+                  className="w-full" 
+                  disabled={
+                    !betAmount || 
+                    parseFloat(betAmount) <= 0 || 
+                    !walletState.balance || 
+                    walletState.balance <= 0 ||
+                    (parseFloat(betAmount) * ballCount[0]) > walletState.balance
+                  }
+                >
+                  <ChevronDown className="mr-2 h-4 w-4" />
+                  Drop {ballCount[0] === 1 ? 'Ball' : `${ballCount[0]} Balls`}
+                </Button>
+                
+                {/* Risk comparison table in controls area */}
+                {renderRiskComparisonTable()}
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <div className="text-xl font-medium">Balls dropping...</div>
+                <div className="text-sm text-muted-foreground mt-2">
+                  Bet amount: ${(gameState.currentBet || 0) * gameState.ballCount} (${gameState.currentBet} × {gameState.ballCount})
+                </div>
+              </div>
+            )}
+            
+            {gameState.lastResult && !gameState.isPlaying && (
+              <Button onClick={resetGame} className="w-full">
+                Play Again
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
-
-      {/* Game Stats */}
-      <div className="w-full max-w-md grid grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="p-4">
-            <CardTitle className="text-lg">Balance</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold">${walletState.balance.toFixed(2)}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="p-4">
-            <CardTitle className="text-lg">Games Played</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold">{walletState.gameCount || 0}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="p-4">
-            <CardTitle className="text-lg">Win Rate</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold">
-              {walletState.gameCount ? ((walletState.gameCount - (gameState.winAmount === 0 ? 1 : 0)) / walletState.gameCount * 100).toFixed(1) : 0}%
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

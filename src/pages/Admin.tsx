@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, Ticket, CreditCard, BarChart, Wallet } from "lucide-react";
+import { ArrowLeft, Users, Ticket, CreditCard, BarChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,7 +10,6 @@ import AdminUserList from "@/components/admin/AdminUserList";
 import AdminSupportTickets from "@/components/admin/AdminSupportTickets";
 import AdminTransactions from "@/components/admin/AdminTransactions";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
-import AdminDepositApprovals from "@/components/admin/AdminDepositApprovals";
 import { initialWalletState, loadWalletState } from "@/lib/wallet";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
@@ -22,7 +22,7 @@ const Admin = () => {
   // Check if user is admin
   useEffect(() => {
     // Admin credentials check - only allow access to admin@moonshot.com
-    const isAdmin = user?.email === "admin@moonshot.com";
+    const isAdmin = user?.email === "iamadmin@moonshot.com";
     if (!isAdmin) {
       navigate('/game');
       toast.error("You don't have permission to access the admin panel");
@@ -51,7 +51,7 @@ const Admin = () => {
         </div>
         
         <Tabs defaultValue="analytics" className="w-full">
-          <TabsList className="w-full max-w-md grid grid-cols-5">
+          <TabsList className="w-full max-w-md grid grid-cols-4">
             <TabsTrigger value="analytics" className="flex items-center">
               <BarChart className="h-4 w-4 mr-2" /> Analytics
             </TabsTrigger>
@@ -63,9 +63,6 @@ const Admin = () => {
             </TabsTrigger>
             <TabsTrigger value="transactions" className="flex items-center">
               <CreditCard className="h-4 w-4 mr-2" /> Transactions
-            </TabsTrigger>
-            <TabsTrigger value="deposits" className="flex items-center">
-              <Wallet className="h-4 w-4 mr-2" /> Deposits
             </TabsTrigger>
           </TabsList>
           
@@ -83,10 +80,6 @@ const Admin = () => {
           
           <TabsContent value="transactions" className="mt-6">
             <AdminTransactions />
-          </TabsContent>
-
-          <TabsContent value="deposits" className="mt-6">
-            <AdminDepositApprovals />
           </TabsContent>
         </Tabs>
       </main>

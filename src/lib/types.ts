@@ -5,12 +5,9 @@ export type Transaction = {
   type: 'deposit' | 'withdrawal' | 'win' | 'loss';
   amount: number;
   timestamp: number;
-  status: 'pending' | 'completed' | 'failed' | 'denied';
+  status: 'pending' | 'completed' | 'failed';
   hash?: string;
   referenceId?: string;
-  userId?: string;
-  userEmail?: string;
-  username?: string;
 };
 
 export type GameState = {
