@@ -8,51 +8,49 @@ export const login = async (email: string, password: string): Promise<UserState>
     // Simulate API call
     setTimeout(() => {
       try {
-        // Check for admin account to create if not exists
+        // Check for admin account
         if (email === "admin@moonshot.com" && password === "admin123") {
-          // Check if admin exists
+          // Get existing users
           const users = storage.getUsers();
           
-          // If admin doesn't exist, create it
-          if (!users[email]) {
-            const adminData: UserState = {
-              id: `admin_${Date.now()}`,
-              email,
-              username: "Administrator",
-              isLoggedIn: true,
-              isNewUser: false,
-              hasDeposited: true,
-              isAdmin: true
-            };
-            
-            // Initialize admin wallet state
-            const adminWalletState: WalletState = {
-              status: 'connected',
-              address: 'Admin Account',
-              balance: 10000, // Admin gets a big balance
-              transactions: [],
-              initialDeposit: 10000,
-              gameCount: 0
-            };
-            
-            // Store admin in users registry
-            users[email] = {
-              password,
-              userData: adminData
-            };
-            storage.setUsers(users);
-            
-            // Store wallet state
-            storage.setUserWallet(adminData.id!, adminWalletState);
-            storage.setWallet(adminWalletState);
-            
-            // Store active user
-            storage.setUser(adminData);
-            
-            resolve(adminData);
-            toast.success("Welcome, Administrator!");
-            return;
-          }
+          // Create or update admin data
+          const adminData: UserState = {
+            id: `admin_${Date.now()}`,
+            email,
+            username: "Administrator",
+            isLoggedIn: true,
+            isNewUser: false,
+            hasDeposited: true,
+            isAdmin: true
+          };
+          
+          // Initialize admin wallet state
+          const adminWalletState: WalletState = {
+            status: 'connected',
+            address: 'Admin Account',
+            balance: 10000, // Admin gets a big balance
+            transactions: [],
+            initialDeposit: 10000,
+            gameCount: 0
+          };
+          
+          // Store admin in users registry
+          users[email] = {
+            password,
+            userData: adminData
+          };
+          storage.setUsers(users);
+          
+          // Store wallet state
+          storage.setUserWallet(adminData.id!, adminWalletState);
+          storage.setWallet(adminWalletState);
+          
+          // Store active user
+          storage.setUser(adminData);
+          
+          resolve(adminData);
+          toast.success("Welcome, Administrator!");
+          return;
         }
         
         if (email && password) {

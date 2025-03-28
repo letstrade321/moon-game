@@ -20,6 +20,8 @@ const fallbackStorage = {
   setItem: (key: string, value: string): void => {
     try {
       localStorage.setItem(key, value);
+      // Also store in sessionStorage for redundancy
+      sessionStorage.setItem(key, value);
     } catch (error) {
       console.error('Local storage error:', error);
     }
@@ -27,6 +29,7 @@ const fallbackStorage = {
   removeItem: (key: string): void => {
     try {
       localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
     } catch (error) {
       console.error('Local storage error:', error);
     }
@@ -45,7 +48,15 @@ export const storage = {
 
   getUser: (): UserState | null => {
     const data = fallbackStorage.getItem(STORAGE_KEYS.USER);
-    return data ? JSON.parse(data) : null;
+    if (data) {
+      try {
+        return JSON.parse(data);
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        return null;
+      }
+    }
+    return null;
   },
 
   setUser: (user: UserState): void => {
@@ -54,7 +65,15 @@ export const storage = {
 
   getWallet: (): WalletState | null => {
     const data = fallbackStorage.getItem(STORAGE_KEYS.WALLET);
-    return data ? JSON.parse(data) : null;
+    if (data) {
+      try {
+        return JSON.parse(data);
+      } catch (error) {
+        console.error('Error parsing wallet data:', error);
+        return null;
+      }
+    }
+    return null;
   },
 
   setWallet: (wallet: WalletState): void => {
@@ -63,7 +82,15 @@ export const storage = {
 
   getUserWallet: (userId: string): WalletState | null => {
     const data = fallbackStorage.getItem(`${STORAGE_KEYS.WALLET_PREFIX}${userId}`);
-    return data ? JSON.parse(data) : null;
+    if (data) {
+      try {
+        return JSON.parse(data);
+      } catch (error) {
+        console.error('Error parsing user wallet data:', error);
+        return null;
+      }
+    }
+    return null;
   },
 
   setUserWallet: (userId: string, wallet: WalletState): void => {
