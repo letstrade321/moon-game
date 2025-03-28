@@ -2,16 +2,16 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
-interface ProtectedRouteProps {
+interface AdminRouteProps {
   children: React.ReactNode;
 }
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+const AdminRoute = ({ children }: AdminRouteProps) => {
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isLoading && !user?.isLoggedIn) {
+    if (!isLoading && (!user?.isLoggedIn || !user?.isAdmin)) {
       navigate("/login");
     }
   }, [user, isLoading, navigate]);
@@ -24,7 +24,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
-  return user?.isLoggedIn ? <>{children}</> : null;
+  return user?.isLoggedIn && user?.isAdmin ? <>{children}</> : null;
 };
 
-export default ProtectedRoute;
+export default AdminRoute; 

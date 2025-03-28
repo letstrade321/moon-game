@@ -1,4 +1,3 @@
-
 export type WalletStatus = 'disconnected' | 'connecting' | 'connected';
 
 export type Transaction = {
@@ -39,6 +38,7 @@ export type UserState = {
   isNewUser: boolean;
   depositBonusExpiry?: number; // Timestamp when the bonus expires
   hasDeposited: boolean;
+  isAdmin?: boolean;  // Add admin flag
 };
 
 export type RiskLevel = 0 | 1 | 2; // 0 = Low, 1 = Medium, 2 = High
