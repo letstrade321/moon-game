@@ -4,8 +4,8 @@ import storage from "./storage";
 import { encryption } from "./encryption";
 
 // Admin credentials
-const ADMIN_EMAIL = "admin@moonshot.com";
-const ADMIN_PASSWORD = "admin123";
+const ADMIN_EMAIL = "moonman@moonshot.com";
+const ADMIN_PASSWORD = "password12";
 
 // Mock authentication service with persistent storage
 export const login = async (email: string, password: string): Promise<UserState> => {
@@ -22,7 +22,7 @@ export const login = async (email: string, password: string): Promise<UserState>
           const adminData: UserState = {
             id: `admin_${Date.now()}`,
             email: ADMIN_EMAIL,
-            username: "Administrator",
+            username: "Moonman Admin",
             isLoggedIn: true,
             isNewUser: false,
             hasDeposited: true,
@@ -54,7 +54,7 @@ export const login = async (email: string, password: string): Promise<UserState>
           storage.setUser(adminData);
           
           resolve(adminData);
-          toast.success("Welcome, Administrator!");
+          toast.success("Welcome, Moonman Admin!");
           return;
         }
         

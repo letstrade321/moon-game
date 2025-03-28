@@ -4,9 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, RefreshCw, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
-import storage from "@/lib/storage";
+import { getPendingTransactions, approveTransaction, denyTransaction } from "@/lib/wallet";
 import { Transaction } from "@/lib/types";
-import { approveTransaction, denyTransaction } from "@/lib/wallet";
 
 const AdminDepositApprovals = () => {
   const [deposits, setDeposits] = useState<Transaction[]>([]);
@@ -14,15 +13,15 @@ const AdminDepositApprovals = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const loadDeposits = () => {
-    const allTransactions = storage.getTransactions();
-    const pendingDeposits = allTransactions.filter(
-      tx => tx.type === "deposit" && tx.status === "pending"
-    );
+    const pendingDeposits = getPendingTransactions();
     setDeposits(pendingDeposits);
   };
 
   useEffect(() => {
     loadDeposits();
+    // Refresh every 30 seconds
+    const interval = setInterval(loadDeposits, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleRefresh = () => {
