@@ -151,6 +151,16 @@ const PlinkoGame: React.FC<PlinkoGameProps> = ({ walletState, setWalletState }) 
     2: "High Risk"
   };
   
+  // Add getMultiplierRarity function
+  const getMultiplierRarity = (multiplier: number): string => {
+    if (multiplier >= 1000) return "Ultra Rare";
+    if (multiplier >= 100) return "Very Rare";
+    if (multiplier >= 50) return "Rare";
+    if (multiplier >= 10) return "Uncommon";
+    if (multiplier >= 1) return "Common";
+    return "Loss";
+  };
+  
   // Remove sparkles and bounce effects after some time
   useEffect(() => {
     const now = Date.now();
@@ -589,47 +599,24 @@ const PlinkoGame: React.FC<PlinkoGameProps> = ({ walletState, setWalletState }) 
   
   // Render multiplier buckets
   const renderBuckets = () => {
-    const buckets = [];
-    const multipliers = currentMultipliers;
-    const bucketWidth = 25; // Smaller buckets for more pins
-    const totalWidth = multipliers.length * bucketWidth;
-    
-    for (let i = 0; i < multipliers.length; i++) {
-      const x = i * bucketWidth - totalWidth / 2 + bucketWidth / 2;
-      const isMiddle = i === Math.floor(multipliers.length / 2);
-      const isHighValue = multipliers[i] >= 10;
-      const isVeryHighValue = multipliers[i] >= 100;
-      const isUltraHighValue = multipliers[i] >= 1000;
-      
-      let bucketColor = "";
-      if (multipliers[i] <= 0.5) bucketColor = "bg-red-500/30";
-      else if (multipliers[i] < 1.5) bucketColor = "bg-yellow-500/30";
-      else if (multipliers[i] < 10) bucketColor = "bg-green-500/30";
-      else if (multipliers[i] < 100) bucketColor = "bg-blue-500/30";
-      else if (multipliers[i] < 1000) bucketColor = "bg-purple-500/30";
-      else bucketColor = "bg-pink-500/30";
-      
-      buckets.push(
-        <div 
-          key={i}
-          className={`absolute bottom-0 h-14 flex items-center justify-center text-xs font-bold 
-                    border border-primary/50 rounded-md mx-0.5
-                    ${bucketColor} 
-                    ${isMiddle ? 'border-purple-500' : ''} 
-                    ${isHighValue ? 'animate-pulse' : ''}
-                    ${isVeryHighValue ? 'animate-bounce' : ''}
-                    ${isUltraHighValue ? 'bg-gradient-to-t from-pink-500/50 to-yellow-500/50' : ''}`}
-          style={{
-            width: bucketWidth - 1, // slightly smaller to create space between buckets
-            left: `calc(50% + ${x}px)`,
-            transform: 'translateX(-50%)',
-          }}
-        >
-          {multipliers[i]}x
-        </div>
-      );
-    }
-    return buckets;
+    return (
+      <div className="flex justify-between items-end h-16 mt-4">
+        {currentMultipliers.map((multiplier, index) => (
+          <div 
+            key={index}
+            className={`flex flex-col items-center ${RISK_COLORS[riskLevel[0] as RiskLevel]}`}
+            style={{ margin: '0 4px' }} // Add 2 spaces between each multiplier
+          >
+            <div className="text-sm font-bold">
+              {multiplier}x
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {getMultiplierRarity(multiplier)}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
   };
   
   // Render visual bouncing effect

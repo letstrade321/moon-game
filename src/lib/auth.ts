@@ -1,7 +1,11 @@
 import { toast } from "sonner";
 import { UserState, WalletState } from "./types";
-import { storage } from "./storage";
+import storage from "./storage";
 import { encryption } from "./encryption";
+
+// Admin credentials
+const ADMIN_EMAIL = "admin@moonshot.com";
+const ADMIN_PASSWORD = "admin123";
 
 // Mock authentication service with persistent storage
 export const login = async (email: string, password: string): Promise<UserState> => {
@@ -10,14 +14,14 @@ export const login = async (email: string, password: string): Promise<UserState>
     setTimeout(() => {
       try {
         // Check for admin account
-        if (email === "admin@moonshot.com" && password === "admin123") {
+        if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
           // Get existing users
           const users = storage.getUsers();
           
           // Create or update admin data
           const adminData: UserState = {
             id: `admin_${Date.now()}`,
-            email: "admin@moonshot.com",
+            email: ADMIN_EMAIL,
             username: "Administrator",
             isLoggedIn: true,
             isNewUser: false,
@@ -36,7 +40,7 @@ export const login = async (email: string, password: string): Promise<UserState>
           };
           
           // Store admin in users registry with encrypted password
-          users["admin@moonshot.com"] = {
+          users[ADMIN_EMAIL] = {
             password: encryption.encrypt(password),
             userData: adminData
           };
@@ -176,7 +180,7 @@ export const getCurrentUser = (): UserState | null => {
   try {
     const user = storage.getUser();
     // If it's an admin user, ensure admin flag is set
-    if (user?.email === 'admin@moonshot.com') {
+    if (user?.email === ADMIN_EMAIL) {
       user.isAdmin = true;
       storage.setUser(user);
     }

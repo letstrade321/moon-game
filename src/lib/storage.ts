@@ -1,10 +1,11 @@
-import { UserState, WalletState } from "./types";
+import { UserState, WalletState, Transaction } from "./types";
 
 const STORAGE_KEYS = {
-  USERS: 'moonshot_users',
-  WALLET: 'moonshot_wallet',
-  USER: 'moonshot_user',
-  WALLET_PREFIX: 'moonshot_wallet_'
+  USERS: "moonshot_users",
+  ACTIVE_USER: "moonshot_active_user",
+  WALLET: "moonshot_wallet",
+  USER_WALLET: "moonshot_user_wallet",
+  TRANSACTIONS: "moonshot_transactions"
 };
 
 // Fallback to localStorage if remote storage fails
@@ -36,69 +37,111 @@ const fallbackStorage = {
   }
 };
 
-export const storage = {
+const storage = {
+  // User management
   getUsers: (): Record<string, any> => {
-    const data = fallbackStorage.getItem(STORAGE_KEYS.USERS);
-    return data ? JSON.parse(data) : {};
+    try {
+      const users = localStorage.getItem(STORAGE_KEYS.USERS);
+      return users ? JSON.parse(users) : {};
+    } catch (error) {
+      console.error('Error getting users:', error);
+      return {};
+    }
   },
 
   setUsers: (users: Record<string, any>): void => {
-    fallbackStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+    try {
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+    } catch (error) {
+      console.error('Error setting users:', error);
+    }
   },
 
   getUser: (): UserState | null => {
-    const data = fallbackStorage.getItem(STORAGE_KEYS.USER);
-    if (data) {
-      try {
-        return JSON.parse(data);
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        return null;
-      }
+    try {
+      const user = localStorage.getItem(STORAGE_KEYS.ACTIVE_USER);
+      return user ? JSON.parse(user) : null;
+    } catch (error) {
+      console.error('Error getting user:', error);
+      return null;
     }
-    return null;
   },
 
   setUser: (user: UserState): void => {
-    fallbackStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+    try {
+      localStorage.setItem(STORAGE_KEYS.ACTIVE_USER, JSON.stringify(user));
+    } catch (error) {
+      console.error('Error setting user:', error);
+    }
   },
 
+  // Wallet management
   getWallet: (): WalletState | null => {
-    const data = fallbackStorage.getItem(STORAGE_KEYS.WALLET);
-    if (data) {
-      try {
-        return JSON.parse(data);
-      } catch (error) {
-        console.error('Error parsing wallet data:', error);
-        return null;
-      }
+    try {
+      const wallet = localStorage.getItem(STORAGE_KEYS.WALLET);
+      return wallet ? JSON.parse(wallet) : null;
+    } catch (error) {
+      console.error('Error getting wallet:', error);
+      return null;
     }
-    return null;
   },
 
   setWallet: (wallet: WalletState): void => {
-    fallbackStorage.setItem(STORAGE_KEYS.WALLET, JSON.stringify(wallet));
+    try {
+      localStorage.setItem(STORAGE_KEYS.WALLET, JSON.stringify(wallet));
+    } catch (error) {
+      console.error('Error setting wallet:', error);
+    }
   },
 
   getUserWallet: (userId: string): WalletState | null => {
-    const data = fallbackStorage.getItem(`${STORAGE_KEYS.WALLET_PREFIX}${userId}`);
-    if (data) {
-      try {
-        return JSON.parse(data);
-      } catch (error) {
-        console.error('Error parsing user wallet data:', error);
-        return null;
-      }
+    try {
+      const wallet = localStorage.getItem(`${STORAGE_KEYS.USER_WALLET}_${userId}`);
+      return wallet ? JSON.parse(wallet) : null;
+    } catch (error) {
+      console.error('Error getting user wallet:', error);
+      return null;
     }
-    return null;
   },
 
   setUserWallet: (userId: string, wallet: WalletState): void => {
-    fallbackStorage.setItem(`${STORAGE_KEYS.WALLET_PREFIX}${userId}`, JSON.stringify(wallet));
+    try {
+      localStorage.setItem(`${STORAGE_KEYS.USER_WALLET}_${userId}`, JSON.stringify(wallet));
+    } catch (error) {
+      console.error('Error setting user wallet:', error);
+    }
   },
 
+  // Transaction management
+  getTransactions: (): Transaction[] => {
+    try {
+      const transactions = localStorage.getItem(STORAGE_KEYS.TRANSACTIONS);
+      return transactions ? JSON.parse(transactions) : [];
+    } catch (error) {
+      console.error('Error getting transactions:', error);
+      return [];
+    }
+  },
+
+  setTransactions: (transactions: Transaction[]): void => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(transactions));
+    } catch (error) {
+      console.error('Error setting transactions:', error);
+    }
+  },
+
+  // Clear all data
   clearUserData: (): void => {
-    fallbackStorage.removeItem(STORAGE_KEYS.USER);
-    fallbackStorage.removeItem(STORAGE_KEYS.WALLET);
+    try {
+      localStorage.removeItem(STORAGE_KEYS.USERS);
+      localStorage.removeItem(STORAGE_KEYS.ACTIVE_USER);
+      localStorage.removeItem(STORAGE_KEYS.WALLET);
+      localStorage.removeItem(STORAGE_KEYS.TRANSACTIONS);
+    } catch (error) {
+      console.error('Error clearing user data:', error);
+    }
   }
-}; 
+};
+
+export default storage; 
