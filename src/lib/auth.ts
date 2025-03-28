@@ -1,6 +1,7 @@
 import { toast } from "sonner";
 import { UserState, WalletState } from "./types";
 import { storage } from "./storage";
+import { encryption } from "./encryption";
 
 // Mock authentication service with persistent storage
 export const login = async (email: string, password: string): Promise<UserState> => {
@@ -34,9 +35,9 @@ export const login = async (email: string, password: string): Promise<UserState>
             gameCount: 0
           };
           
-          // Store admin in users registry
+          // Store admin in users registry with encrypted password
           users[email] = {
-            password,
+            password: encryption.encrypt(password),
             userData: adminData
           };
           storage.setUsers(users);
@@ -57,7 +58,7 @@ export const login = async (email: string, password: string): Promise<UserState>
           // Check if user exists in storage
           const users = storage.getUsers();
           
-          if (users[email] && users[email].password === password) {
+          if (users[email] && encryption.decrypt(users[email].password) === password) {
             // Load existing user data
             const userData = users[email].userData;
             
@@ -128,9 +129,9 @@ export const signup = async (email: string, password: string): Promise<UserState
             gameCount: 0
           };
           
-          // Store user in users registry
+          // Store user in users registry with encrypted password
           users[email] = {
-            password,
+            password: encryption.encrypt(password),
             userData
           };
           storage.setUsers(users);
