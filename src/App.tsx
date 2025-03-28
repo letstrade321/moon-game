@@ -7,18 +7,15 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
-import Index from "@/pages/Index";
-import Game from "@/pages/Game";
-import Login from "@/pages/Login";
-import Signup from "@/pages/Signup";
-import Deposit from "@/pages/Deposit";
-import Withdrawal from "@/pages/Withdrawal";
-import History from "@/pages/History";
-import Admin from "@/pages/Admin";
-import NotFound from "@/pages/NotFound";
-import AdminLogin from "@/pages/AdminLogin";
-import AdminPanel from "@/pages/AdminPanel";
-import ProtectedAdminRoute from "@/components/ProtectedAdminRoute";
+import Index from "./pages/Index";
+import Game from "./pages/Game";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Deposit from "./pages/Deposit";
+import Withdrawal from "./pages/Withdrawal";
+import History from "./pages/History";
+import Admin from "./pages/Admin";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -72,15 +69,6 @@ const App: React.FC = () => (
                   <Admin />
                 </AdminRoute>
               } 
-            />
-            <Route path="/admin-login" element={<AdminLogin />} />
-            <Route
-              path="/admin-panel"
-              element={
-                <ProtectedAdminRoute>
-                  <AdminPanel />
-                </ProtectedAdminRoute>
-              }
             />
             <Route path="*" element={<NotFound />} />
           </Routes>
