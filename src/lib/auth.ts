@@ -17,7 +17,7 @@ export const login = async (email: string, password: string): Promise<UserState>
           // Create or update admin data
           const adminData: UserState = {
             id: `admin_${Date.now()}`,
-            email,
+            email: "admin@moonshot.com",
             username: "Administrator",
             isLoggedIn: true,
             isNewUser: false,
@@ -36,7 +36,7 @@ export const login = async (email: string, password: string): Promise<UserState>
           };
           
           // Store admin in users registry with encrypted password
-          users[email] = {
+          users["admin@moonshot.com"] = {
             password: encryption.encrypt(password),
             userData: adminData
           };
