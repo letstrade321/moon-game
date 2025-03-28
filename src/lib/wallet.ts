@@ -50,7 +50,16 @@ export const getPendingTransactions = (): Transaction[] => {
       const userPendingTransactions = wallet.transactions.filter(
         (tx: Transaction) => tx.status === 'pending'
       );
-      pendingTransactions = [...pendingTransactions, ...userPendingTransactions];
+      
+      // Add user information to each transaction
+      const transactionsWithUser = userPendingTransactions.map(tx => ({
+        ...tx,
+        userId,
+        userEmail: userData.userData.email,
+        username: userData.userData.username
+      }));
+      
+      pendingTransactions = [...pendingTransactions, ...transactionsWithUser];
     }
   });
   
@@ -150,6 +159,12 @@ export const denyTransaction = (transactionId: string): boolean => {
 export const depositCrypto = async (amount: number): Promise<Transaction> => {
   return new Promise((resolve) => {
     setTimeout(() => {
+      const user = getCurrentUser();
+      if (!user) {
+        toast.error("User not logged in");
+        return;
+      }
+
       const transaction: Transaction = {
         id: uuidv4(),
         type: 'deposit',
@@ -159,8 +174,16 @@ export const depositCrypto = async (amount: number): Promise<Transaction> => {
         hash: `0x${Math.random().toString(16).slice(2, 10)}`
       };
       
-      // Update user deposit status only after approval
-      // updateUserDepositStatus(true);
+      // Get current wallet state
+      const walletData = localStorage.getItem(`moonshot_wallet_${user.id}`);
+      const wallet = walletData ? JSON.parse(walletData) : initialWalletState;
+      
+      // Add transaction to wallet
+      wallet.transactions.push(transaction);
+      
+      // Save updated wallet
+      localStorage.setItem(`moonshot_wallet_${user.id}`, JSON.stringify(wallet));
+      localStorage.setItem('moonshot_wallet', JSON.stringify(wallet));
       
       toast.success(`Deposit request of $${amount.toFixed(2)} submitted for approval`);
       resolve(transaction);
