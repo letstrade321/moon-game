@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, MoveDown, MoveUp, Check, X } from "lucide-react";
+import { Search, MoveDown, MoveUp, Check, X, RefreshCw } from "lucide-react";
 import { Transaction } from "@/lib/types";
 import { approveTransaction, denyTransaction, getPendingTransactions } from "@/lib/wallet";
 import { toast } from "sonner";
@@ -24,12 +23,25 @@ const AdminTransactions = () => {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState<"approve" | "deny">("approve");
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    // Load pending transactions
+  const loadTransactions = () => {
     const transactionData = getPendingTransactions();
     setTransactions(transactionData);
+  };
+
+  useEffect(() => {
+    loadTransactions();
+    // Refresh transactions every 30 seconds
+    const interval = setInterval(loadTransactions, 30000);
+    return () => clearInterval(interval);
   }, []);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    loadTransactions();
+    setTimeout(() => setIsRefreshing(false), 1000);
+  };
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
@@ -104,8 +116,22 @@ const AdminTransactions = () => {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Pending Transactions</CardTitle>
-          <CardDescription>Review and approve deposits and withdrawals</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Pending Transactions</CardTitle>
+              <CardDescription>Review and approve deposits and withdrawals</CardDescription>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="flex items-center"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex items-center mb-4">

@@ -89,6 +89,7 @@ export const approveTransaction = (transactionId: string): boolean => {
           if (user) {
             user.userData.hasDeposited = true;
             userData.userData.hasDeposited = true;
+            updateUserDepositStatus(true);
           }
         }
         
@@ -154,14 +155,14 @@ export const depositCrypto = async (amount: number): Promise<Transaction> => {
         type: 'deposit',
         amount,
         timestamp: Date.now(),
-        status: 'completed',
+        status: 'pending',
         hash: `0x${Math.random().toString(16).slice(2, 10)}`
       };
       
-      // Update user deposit status
-      updateUserDepositStatus(true);
+      // Update user deposit status only after approval
+      // updateUserDepositStatus(true);
       
-      toast.success(`Deposit of $${amount.toFixed(2)} successful!`);
+      toast.success(`Deposit request of $${amount.toFixed(2)} submitted for approval`);
       resolve(transaction);
     }, 1500);
   });
